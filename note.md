@@ -7,7 +7,7 @@ dans le header elf:
  	il faut check si dans le header e_ehsize = Elf32_Ehdr et donc si le header fait la taille de e_ehsize
 	il faut check que e_phentsize = Elf32_Phdr
 	il faut check que e_shentsize = Elf32_Shdr
-		
+
 dans le header de section (Elf32_Shdr)
 	sh_entsize permet de verifier des erreurs
 
@@ -18,7 +18,7 @@ methode de chiffrement:
 	OR: caca
 	Stream Ciphers: nice pour les bianires
 	Block Ciphers: bof pour les binaires
-	irtual CPUs: bien pour les binaires mais galere
+	Virtual CPUs: bien pour les binaires mais galere
 
 Dacryfile:
 	chiffre du debut de la section .text a la fin du segment .text

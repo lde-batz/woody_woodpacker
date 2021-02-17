@@ -234,34 +234,29 @@ The host’s process image can thus be returned to its original pristine state i
 
 Implementation details
 
-Having explained the theory we turn now to the practice of subversive dynamic
-linking. The following sections will examine the specifics of implementing the
-subversive dynamic linking methodology on each of three Unix platforms: Linux,
-FreeBSD and Solaris.
+Having explained the theory we turn now to the practice of subversive dynamic linking. The following sections will examine the specifics of implementing the subversive dynamic linking methodology on each of three Unix platforms: Linux, FreeBSD and Solaris.
 
 Linux
 
-The first step of the methodology requires knowing which ELF object provides shared
-object loading functionality. Under Linux, the object that provides this functionality is
-the GNU C library (glibc). The actual function dlopen()contained within libdl is
-actually a wrapper for the glibc function _dl_open(). Therefore, the object that
-needs to be located for the first step of subversive dynamic linking is glibc.
-Locating the memory map that corresponds to the text segment of glibc involves
-searching the host’s memory image. The file /proc/self/maps provides access to the
-memory maps of the process. This file is comprised of ASCII strings, having the
-format:
+The first step of the methodology requires knowing which ELF object provides shared object loading functionality.
+Under Linux, the object that provides this functionality is the GNU C library (glibc).
+The actual function dlopen()contained within libdl is actually a wrapper for the glibc function _dl_open().
+Therefore, the object that needs to be located for the first step of subversive dynamic linking is glibc.
+
+Locating the memory map that corresponds to the text segment of glibc involves searching the host’s memory image.
+The file /proc/self/maps provides access to the memory maps of the process.
+This file is comprised of ASCII strings, having the format:
 /* addr range prot offset dev inode path name */
 4001b000-400ff00 r-xp 00000000 03:01 390597 /lib/libc-2.1.3.so 
-The first field is the base load address of the object, followed by the upper limit of the
-memory map. This field is followed by a description of the protection on that map,
-read, write, execute and private (copy on write), represented by r w x and p,
-respectively. The next three fields are meaningless to subversive linking, the offset,
-device major and minor number, and the file system inode number. The last entry is
-most interesting, the full path name of the source file for the object mapped into
-memory.
-The inclusion of the path name of the object allows glibc to be located using only
-strcmp(). The mechanism for locating the library is thus a simple string extraction
-and string-searching algorithm.
+
+The first field is the base load address of the object, followed by the upper limit of the memory map.
+This field is followed by a description of the protection on that map, read, write, execute and private (copy on write), represented by r w x and p, respectively.
+The next three fields are meaningless to subversive linking, the offset, device major and minor number, and the file system inode number.
+The last entry is most interesting, the full path name of the source file for the object mapped into memory.
+
+The inclusion of the path name of the object allows glibc to be located using only strcmp().
+The mechanism for locating the library is thus a simple string extraction and string-searching algorithm.
+
 1. for (i = 0; i < nread; i++) {
 2. start = end = buffer + i;
 3. while ((*end++ != ‘\n’) && (*end) && (i++ < nread))
@@ -272,32 +267,148 @@ and string-searching algorithm.
 7. (strncmp(ptr, lib_name, strlen(lib_name)) == 0))
 8. return ((void *)strtol(start, NULL, 16));
  }
-The buffer is a character array filled by a read()with the contents of the file
-/proc/self/maps. The number of bytes read is stored in nread. The buffer is iterated
-through until we run out of bytes (line 1). A standing pointer to the start of the string
-and a walking pointer, used to locate the end of the string, are both initialized to the
-current location within the buffer (line 2).
-This algorithm is searching for strings; therefore, strings need to be extracted from an
-arbitrary sequence of bytes. For the purposes of this algorithm, strings are defined as
-sequences of bytes terminated by a new line character (‘\n’), or an ASCII NUL
-(‘\0’). Extracting a string from an arbitrary stream of bytes is made possible by
-searching for an end of string character, as well as error checking for the end of the
-buffer (line 3). The string is NUL terminated (line 4) to increase the speed of the
-strncmp() below.
-After being extracted, a string is searched for the requested object’s name. The search
-is accomplished by pointing to the end of the extracted string and walking backward
-until the first word separation character (‘ ‘) is found, or the start of the string is
-reached (line 5). As an optimization, before incurring the overhead of a function call,
-the first char of each work is compared. If these match, then a strncmp() is likely to
-be useful (line 6). The current pointer is compared against the requested name, and if
-there is a match the string searching is over (line 7). If the string matches the 
-requested library name, then the start of the string is an ASCII hexadecimal
-representation of the load address that needs to be converted into a pointer for later
-manipulation and interpretation. This conversion is done by casting the return of the
-function strtol() to a pointer7
- (line 8).
-The dlsym() function, normally used to convert a symbolic reference into an absolute
-memory location, in something unique to Linux, is actually contained within libdl.
-This lack of ready access to dlsym() is not a big a problem. The same functions used
-to locate and hijack the GNU C library can be reused to locate any shared object that
-has been loaded into the process image.
+
+The buffer is a character array filled by a read()with the contents of the file /proc/self/maps.
+The number of bytes read is stored in nread.
+The buffer is iterated through until we run out of bytes (line 1).
+A standing pointer to the start of the string and a walking pointer, used to locate the end of the string, are both initialized to the current location within the buffer (line 2).
+
+This algorithm is searching for strings; therefore, strings need to be extracted from an arbitrary sequence of bytes.
+For the purposes of this algorithm, strings are defined as sequences of bytes terminated by a new line character (‘\n’), or an ASCII NUL (‘\0’).
+Extracting a string from an arbitrary stream of bytes is made possible by searching for an end of string character, as well as error checking for the end of the buffer (line 3).
+The string is NUL terminated (line 4) to increase the speed of the strncmp() below.
+
+After being extracted, a string is searched for the requested object’s name.
+The search is accomplished by pointing to the end of the extracted string and walking backward until the first word separation character (‘ ‘) is found, or the start of the string is reached (line 5).
+As an optimization, before incurring the overhead of a function call, the first char of each work is compared. If these match, then a strncmp() is likely to be useful (line 6).
+The current pointer is compared against the requested name, and if there is a match the string searching is over (line 7).
+If the string matches the  requested library name, then the start of the string is an ASCII hexadecimal representation of the load address that needs to be converted into a pointer for later manipulation and interpretation.
+This conversion is done by casting the return of the function strtol() to a pointer (line 8).
+
+The dlsym() function, normally used to convert a symbolic reference into an absolute memory location, in something unique to Linux, is actually contained within libdl.
+This lack of ready access to dlsym() is not a big a problem.
+The same functions used to locate and hijack the GNU C library can be reused to locate any shared object that has been loaded into the process image.
+
+FreeBSD
+
+The FreeBSD implementation of the dynamic link editor provides its own ELF object loading, as well as its own symbol resolution functionality.
+Satisfying the first step of the methodology on FreeBSD requires locating the dynamic linker as this ELF object contains the functions dlopen() , dlclose() and dlsym().
+Locating the load address of the run time linker is the first step towards resolving these symbols.
+
+Scouring the memory maps of a process can be easily accomplished with information retrieved from the procfs.
+FreeBSD procfs provides a process access to information about itself via the directory: /proc/curproc.
+The file providing information about memory maps within the process is map.
+Thus, a parasite can access the memory map information of its host via /proc/curproc/map .
+The information is stored as a series of ASCII strings having the following format.
+
+/* start end	real	prot	priv	type */
+0x804800 0x805500 13 15 0xc6e18960 r-x 21 0x0 COW NC vnode
+
+The first and second fields in the string contain the start and end address of a memory range.
+The remaining entries store a representation of the segment’s protection, along with additional information potentially of interest to a parasite;
+however, it is of no interest to the subversive dynamic linking methodology presented in this paper.
+
+The mechanism used to determine which memory map corresponds to the dynamic linker requires access to the Global Offset Table (GOT).
+The location of the GOT is contained within the dynamic linking structures.
+The structure with the tag DT_PLTGOT gives the address of the GOT, allowing the dynamic linker to implement traditional ELF dynamic linking.
+
+The zero entry in the GOT array is reserved to hold the address of the dynamic linking structures;
+this is for the convenience of the dynamic linker itself.
+The first and second entries are reserved on the i386.
+The i386 ELF specification supplement defines the first entry, GOT[1], as a “word of identifying information”.
+This identifying information is a pointer to the dynamic linker’s private structure describing the ELF object’s memory map.
+This information is potentially useful to a parasite in many ways, but not to this subversive linking implementation.
+The second entry, GOT[2], is a pointer to a function within the dynamic link editor.
+This function provides  he entry point into the run time linker’s symbol resolution procedures.
+This pointer is the key to locating the dynamic linker among the many memory maps of the process image.
+Locating which memory map range the pointer references into makes it possible to determine the load address of the dynamic linker.
+
+1. rtld_func = (char *)((int *)got)[2];
+2. for (i = 0, ptr = buffer; (i < nread) && (*ptr); i++, ptr++) {
+3. start = buffer + i;
+4. load_base = (char *)strtol(start, &end, 16);
+5.
+6. if (rtld_func < load_base) {
+while ((*ptr++ != ‘\n’) && (*ptr) && (i++ < nread))
+;
+continue;
+}
+7. load_high = (char *)strtol(++end, NULL, 16);
+8.
+9. if (rtld_func < load_high)
+return (load_base);
+}
+
+The pointer to the run time link editor is extracted from the second entry in the global offset table (line 1).
+The character array buffer has been filled with the contents of /proc/curproc/maps.
+These contents are treated as strings: byte arrays of arbitrary lenght terminated with a new line or a NUL.
+Each of these strings needs to be converted into memory locations, and the rtld pointer compared against this memory range.
+The strings are iterated through (line 2).
+The pointer start is initialized to the current string location within the buffer.
+The start of the string is converted into a pointer by the strtol() function (line 4).
+If the location of the dynamic linking function is lower than the load base of the current map (line 5), then the next string is extracted and loop continues (line 6).
+Otherwise, the highest location of the memory map is retrieved (line 7).
+If the pointer is lower than the maximum range of the map (line 8), then the pointer falls within the memory map and the base load address is returned (line 9).
+
+After locating the load address of the dynamic linker, it is merely a matter of resolving the requisite functions and managing the run time data as suggested above.
+
+Solaris
+
+The Solaris run time link editor provides its own dlopen(), dlsym() and dlclose().
+Thus, the dynamic linker is the object that needs to be located and parsed in order to satisfy the first step of the subversive linking methodology.
+
+The Solaris procfs file /proc/self/map is comprised of an arbitrary number of prmap_t structures.
+These structures, defined in procfs.h , each describe a memory map and contain, among other things, the start address and size of the memory map.
+A method similar to that employed under FreeBSD must be used to determine which memory map corresponds to the dynamic linker.
+A pointer to a run time link editor function is located and the memory maps searched for the correct address range.
+
+The SPARC Procedure Linkage Table (PLT) is stored in private memory as the link editor directly modifies it.
+The GOT plays no part in symbol resolution.
+The first four PLT entries are reserved for the dynamic link editor.
+The zero entry contains a small stub function to call the run time linker’s symbol resolution routines, and the first entry contains a “word of identifying information”.
+The second and third entries are used for 64bit programs, but the logic employed remains the same.
+The stub function creates a register window, and then calls a dynamic linker procedure.
+This procedure is the entry point into the link editor’s run time symbol resolution functions.
+
+Each entry in the PLT is twelve bytes long, which allows for three SPARC opcodes.
+The format of SPARC opcodes requires some explanation, as it is central to the locating of the dynamic linker.
+All SPARC opcodes are four bytes long, and are one of four possible types; called formats, viz format 1, format 2, etc.
+These formats are differentiated by the first two bits of the opcode.
+The call opcode, which transfers control to a location in memory, is the only format 1 instruction.
+
+The SPARC transfer control instructions, i.e. branches and calls, are relative to the current position of the program counter, or instruction pointer.
+This allows the code to be easily relocated in memory without relocation fix ups.
+The call opcode adds a signed 32bit displacement to the program counter, and thus transfers control.
+Since all SPARC control transfer operations are aligned on four byte boundaries, because all opcodes are four bytes long, the lower two bits of the displacement will be zero.
+The 32bit displacement can thus be stored as a 30bit number, allowing the most significant two bits to be recovered to indicate the opcode type.
+
+Recovering the pointer is possible by extracting the information from the call opcode that actually transfers control to the dynamic linker.
+The second instruction (1-indexed, i.e. the 4 th byte) in the zero entry of the procedure linkage table (PLT0) is the relevant call instruction.
+Extracting this pointer requires reclaiming the 32bit offset, accomplished by shifting the opcode left two places;
+this discounts the opcode type information stored in the most significant two bits.
+The offset can then be added to the address of the call instruction (PLT0 + 4), which would be the value of the program counter under normal circumstances, to locate the absolute memory location of the dynamic linker’s symbol resolution function.
+This absolute memory location can then be checked to see which memory map address range it falls into, and the base load address of the dynamic linker can thus be determined.
+
+1. rtld_func = (char *) &plt[1];
+2. rtld_func += (char *) (plt[1] << 2);
+3. for (prmap = buf; prmap < buf + sizeof buf; prmap++)
+4. if ((rtld_func > (char *)prmap->pr_vaddr) &&
+5. (rtld_func < (char *)(prmap->pr_vaddr + prmap->pr_size)))
+6. return (prmap->pr_vaddr);
+
+The address of the call instruction in the zero entry is stored in rtld_func, which then acts as a pseudo-program counter (line 1).
+The 32bit displacement of the call instruction is then extracted and added to the pseudo-program counter to locate the absolute memory address of the dynamic link’s function (line 2).
+The byte array buf is filled with the contents of /proc/self/map : an array of prmap_t structures.
+This array of structures is iterated through (line 3), and each structure’s address range is checked to see if it includes the address of the rtld function.
+First, the base address of the memory map is checked, if the rtld function is lower than the base address, then the next structure is checked (line 4).
+If the location of the function is higher than the base address, and lower than the highest address (line 5), then the base address of the map is the load address of the dynamic linker.
+This load address is returned (line 6).
+
+After locating the load address of the dynamic linker, it is merely a matter of resolving the requisite functions and managing the run time data as suggested above.
+
+Conclusion
+
+We have demonstrated the importance of dynamic linking for parasite code, and how a reliable mechanism of utilizing libraries greatly enhances parasite functionality.
+The methodology provided involved using platform specific algorithms to determine the memory address of the dlopen() function within the already loaded dynamic linker.
+With sample implementations for Linux, FreeBSD and Solaris we have demonstrated that this method is legitimate and portable.
+Thus, the threat of under-featured parasites has been ended forever.

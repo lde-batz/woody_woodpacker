@@ -1,3 +1,8 @@
+La compression exécutable est tout moyen de compresser un fichier exécutable et de combiner les données compressées avec un code de décompression en un seul exécutable.
+Lorsque cet exécutable compressé est exécuté, le code de décompression recrée le code d'origine à partir du code compressé avant de l'exécuter.
+Dans la plupart des cas, cela se produit de manière transparente afin que l'exécutable compressé puisse être utilisé exactement de la même manière que l'original.
+Les compresseurs exécutables sont souvent appelés "runtime packers", "software packers", "software protectors" (ou meme "polymorphic packers" et "obfuscating tools").
+
 dans le header elf:
  	il faut check si dans le header e_ehsize = Elf32_Ehdr et donc si le header fait la taille de e_ehsize
 	il faut check que e_phentsize = Elf32_Phdr

@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 15:35:57 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/18 16:44:50 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/02/18 16:51:38 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,23 +30,15 @@ int main(int argc, char **argv)
 		printf("Error args: ./a.out [KEY] [MESSAGE]\n");
 		exit(EXIT_FAILURE);
 	}
+
+
 	key = argv[1];
 	len = strlen(key);
 	message = argv[2];
+	
+	
 	printf("%s - %s\n", key, message);
 
-	for(i = 0; i < 256; i++)
-	{
-		S[i] = i;
-	}
-	j = 0;
-	for(i = 0; i < 256; i++)
-	{
-		j = (j + S[i] + key[i % len]) % 256;
-		swap = S[i];
-		S[i] = S[j];
-		S[j] = swap;
-	}
 	printf("plain -> %s -> ", message);
 	k = 0;
 	while (message[k])
@@ -55,6 +47,23 @@ int main(int argc, char **argv)
 		k++;
 	}
 	printf("\n");
+
+// Start chiffrement
+
+// init S
+	for(i = 0; i < 256; i++)
+		S[i] = i;
+// melange S avec la cle
+	j = 0;
+	for(i = 0; i < 256; i++)
+	{
+		j = (j + S[i] + key[i % len]) % 256;
+		swap = S[i];
+		S[i] = S[j];
+		S[j] = swap;
+	}
+
+// chiffre le message octet par octet
 	i = 0;
 	j = 0;
 	k = 0;
@@ -72,6 +81,8 @@ int main(int argc, char **argv)
 		k++;
 	}
 	printf("crypt -> ");
+
+// affiche le message chiffre
 	k = 0;
 	while (message[k])
 	{
@@ -81,10 +92,13 @@ int main(int argc, char **argv)
 	printf("\n");
 
 	printf("uncrypt -> ");
+
+// reinit S
 	for(i = 0; i < 256; i++)
 	{
 		S[i] = i;
 	}
+// remelange S avec la cle
 	j = 0;
 	for(i = 0; i < 256; i++)
 	{
@@ -93,6 +107,8 @@ int main(int argc, char **argv)
 		S[i] = S[j];
 		S[j] = swap;
 	}
+
+// dechiffre le message octet par octet
 	i = 0;
 	j = 0;
 	k = 0;
@@ -109,6 +125,8 @@ int main(int argc, char **argv)
 		
 		k++;
 	}
+
+// affiche le message dechiffre
 	k = 0;
 	while (message[k])
 	{
@@ -118,6 +136,7 @@ int main(int argc, char **argv)
 	printf("\n");
 
 
+// genere un cle aleatoire
 	printf("\n\nKEY GENERATION\n");
 		srand(time(NULL));   // Initialization, should only be called once.
 	for(i = 0; i < 10; i++)

@@ -1,3 +1,10 @@
+DOC:
+ - http://www.stonedcoder.org/~kd/lib/61-267-1-PB.pdf
+ x https://packetstormsecurity.com/files/12327/elf-pv.txt.html
+ x https://ensiwiki.ensimag.fr/images/b/b2/ENSIMAG-2A-Securiy-Cryptology-2016-Graux-Mouillard-Saoud.pdf
+ x http://phrack.org/issues/58/5.html#article
+ - https://grugq.github.io/docs/subversiveld.pdf
+
 La compression exécutable est tout moyen de compresser un fichier exécutable et de combiner les données compressées avec un code de décompression en un seul exécutable.
 Lorsque cet exécutable compressé est exécuté, le code de décompression recrée le code d'origine à partir du code compressé avant de l'exécuter.
 Dans la plupart des cas, cela se produit de manière transparente afin que l'exécutable compressé puisse être utilisé exactement de la même manière que l'original.
@@ -86,6 +93,19 @@ Il est possible de patcher le code parasite avant de l'insérer, mais l'approche
 
 
 
+
+
+
+
+
+Les binaires de porte dérobée peuvent être divisés en trois problèmes: créer une charge utile, l'injecter dans les binaires et rediriger le flux d'exécution vers la charge utile.
+Dans cet article, nous traitons du second: écrire du code, nommé payload, dans un programme déjà compilé.
+Pour les autres parties, beaucoup de charge utile peut être trouvée sur le web [7] et la redirection de flux est bien documentée [2] [3] [4].
+
+Un exécutable ELF a toujours un segment de type «load».
+
+En général, la table d'en-tête de programme est placée juste après l'en-tête de fichier.
+Ensuite, toutes les données sont placées et le fichier se termine par le tableau des en-têtes de section.
 
 
 

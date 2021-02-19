@@ -6,13 +6,15 @@
 #    By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/09 10:39:42 by lde-batz          #+#    #+#              #
-#    Updated: 2020/11/09 16:35:43 by lde-batz         ###   ########.fr        #
+#    Updated: 2021/02/19 11:55:13 by lde-batz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = woody_woodpacker
 
 SRC +=	main.c
+SRC +=	check_file.c
+SRC +=	woody_woodpacker.c
 SRC +=	exit.c
 
 SRC_DIR = srcs/
@@ -72,7 +74,7 @@ clean:
 
 fclean: clean
 	make -C libft fclean
-	rm -f $(NAME)
+	rm -f $(NAME) woody
 	printf '\033[31m[ ✔ ] %s\n\033[0m' "Fclean woody_woodpacker"
 
 re: fclean all

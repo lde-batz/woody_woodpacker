@@ -1,3 +1,7 @@
-# Object files
+.DS_Store
+*/objects
 *.o
-*.a
+woody_woodpacker
+woody
+libft/obj/
+libft/libft.a

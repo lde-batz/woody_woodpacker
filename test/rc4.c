@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 15:35:57 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/18 16:51:38 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/02/18 18:58:42 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <time.h>
+#include <stdint.h>
 
 int main(int argc, char **argv)
 {

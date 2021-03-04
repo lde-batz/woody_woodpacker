@@ -39,10 +39,14 @@ void	printf_section(void)
 {
 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)g_woody->ptr;
 	Elf64_Shdr *phdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
+//	Elf64_Sym *symboltab;
+	char *strtab;
 
 	printf("diff = %li\n", (void*)phdr - (void*)ehdr);
 	for(int i = 0; i < ehdr->e_shnum; i++)
 	{
+		if (phdr->sh_type == SHT_STRTAB)
+		{
 		printf("\n\n-----------------------------------------------------\n");
 		printf("sh_name = %i\n", phdr->sh_name);
 		printf("sh_type = %i\n", phdr->sh_type);
@@ -54,6 +58,14 @@ void	printf_section(void)
 		printf("sh_info = %i\n", phdr->sh_info);
 		printf("sh_addralign = %li\n", phdr->sh_addralign);
 		printf("sh_entsize = %li\n", phdr->sh_entsize);
+		printf("\n\n");
+
+		strtab = (char*)(g_woody->ptr + phdr[ehdr->e_shstrndx].sh_offset);
+			printf("symboltab\n");
+//			symboltab = g_woody->ptr + phdr->sh_offset;
+			printf("string = %s\n", &strtab[phdr->sh_addr]);
+		}
+
 		phdr++;
 	}
 
@@ -65,9 +77,9 @@ void	woody_woodpacker(void)
 	int	fd;
 
 /*		IMPORTANT			*/
-	if (i < file_size) {
-    do_something(file_contents[i])
-}
+//	if (i < file_size) {
+//    do_something(file_contents[i])
+//}
 	
 	printf_section();
 //	printf_segment();

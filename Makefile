@@ -6,7 +6,7 @@
 #    By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/09 10:39:42 by lde-batz          #+#    #+#              #
-#    Updated: 2021/02/19 11:55:13 by lde-batz         ###   ########.fr        #
+#    Updated: 2021/03/16 15:33:57 by lde-batz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,6 +15,7 @@ NAME = woody_woodpacker
 SRC +=	main.c
 SRC +=	check_file.c
 SRC +=	woody_woodpacker.c
+SRC +=	encrypt.c
 SRC +=	exit.c
 
 SRC_DIR = srcs/

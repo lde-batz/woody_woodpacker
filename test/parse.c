@@ -336,3 +336,72 @@ int main(int argc, char *argv[])
 
     return EXIT_SUCCESS;
 }
+
+
+
+void	testprint(void)
+{
+	Elf64_Ehdr *eh = (Elf64_Ehdr *)g_woody->ptr;
+	// look for the PT_LOAD segment
+	const char *load_addr = NULL;
+	uint32_t load_offset = 0;
+	for (int i = 0; i < eh->e_phnum; i++) {
+		Elf64_Phdr *ph = (Elf64_Phdr *)((char *)g_woody->ptr + (eh->e_phoff + eh->e_phentsize * i));
+		// I've found the PT_LOAD segment
+		if (ph->p_type == PT_LOAD) {
+
+			load_addr = (const char *)ph->p_vaddr;
+			load_offset = ph->p_offset;
+			break;
+		}
+	}
+
+	// if there is no PT_LOAD segment, we are stuck
+//	if (load_addr == NULL) {
+//		return;
+//	}
+	// look for the PT_DYNAMIC segment
+	for (int i = 0; i < eh->e_phnum; i++) {
+		Elf64_Phdr *ph = (Elf64_Phdr *)((char *)g_woody->ptr + (eh->e_phoff + eh->e_phentsize * i));
+		// I've found the PT_DYNAMIC segment
+		if (ph->p_type == PT_DYNAMIC) {
+			const Elf64_Dyn *dtag_table = (const Elf64_Dyn *)(g_woody->ptr + ph->p_offset);
+
+			// look for the string table that contains the names of the
+			// shared libraries need by this ELF file
+			const char *strtab = NULL;
+			for (int j = 0; 1; j++) {
+				// the end of table of Elf64_Dyn is marked with DT_NULL
+				if (dtag_table[j].d_tag == DT_NULL) {
+					break;
+				}
+
+				if (dtag_table[j].d_tag == DT_STRTAB) {
+				// mark the position of the string table
+				const char *strtab_addr = (const char *)dtag_table[j].d_un.d_ptr;
+				uint32_t strtab_offset = load_offset + (strtab_addr - load_addr);
+				strtab = g_woody->ptr + strtab_offset;
+				}
+			}
+
+			// if there is no string table, we are stuck
+			if (strtab == NULL) {
+			break;
+			}
+
+			// now, I'll look for shared library names inside the string table
+			for (int j = 0; 1; j++) {
+				// the end of table of Elf64_Dyn is marked with DT_NULL
+				if (dtag_table[j].d_tag == DT_NULL) {
+					break;
+				}
+				if (dtag_table[j].d_tag == DT_NEEDED) {
+				printf("shared lib: %s\n", &strtab[dtag_table[j].d_un.d_val]);
+				}
+			}
+
+			// only look into PT_DYNAMIC
+			break;
+		}
+	}
+}

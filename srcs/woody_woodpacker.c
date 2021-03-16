@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 11:41:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/16 15:28:10 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/16 20:01:16 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,13 +183,13 @@ void	woody_woodpacker(void)
 //    do_something(file_contents[i])
 //}
 	
-	print_section();
+//	print_section();
 //	print_segment();
 
 //	testprint();
 
 
-//	encrypt_section_text();
+	encrypt_text_section();
 
 	fd = open("woody", O_WRONLY | O_CREAT, 0555);
 	write(fd, g_woody->ptr, g_woody->ptr_len);

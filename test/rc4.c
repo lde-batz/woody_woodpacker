@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 15:35:57 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/18 18:58:42 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/15 17:57:12 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 // genere un cle aleatoire
 	printf("\n\nKEY GENERATION\n");
 		srand(time(NULL));   // Initialization, should only be called once.
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < 16; i++)
 	{
 		int r = rand();
 		printf("%02hhX", (uint8_t)(r % 256));

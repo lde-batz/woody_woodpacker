@@ -1,6 +1,7 @@
 .DS_Store
 */objects
 *.o
+*.txt
 woody_woodpacker
 woody
 libft/obj/

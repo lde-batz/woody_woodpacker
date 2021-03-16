@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 10:40:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/19 11:54:11 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/15 09:47:57 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ typedef struct	s_woody
 	void		*ptr;
 	long int	ptr_len;
 	uint8_t		endian;
+	long unsigned int	last_entry;
 }				t_woody;
 
 extern t_woody	*g_woody;

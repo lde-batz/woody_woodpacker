@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 10:49:56 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/19 14:30:14 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/17 23:03:18 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,15 +85,16 @@ void	check_elf_hdr(unsigned char *ptr)
 		exit_woody(NULL, EXIT_FAILURE);
 	}
 
+/*
 	printf("e_entry = %li\n", hdr->e_entry);
 	printf("e_phoff = %li\n", hdr->e_phoff);
 	printf("e_shoff = %li\n", hdr->e_shoff);
-	
 	printf("e_phentsize = %i\n", hdr->e_phentsize);
 	printf("e_phnum = %i\n", hdr->e_phnum);
 	printf("e_shentsize = %i\n", hdr->e_shentsize);
 	printf("e_shnum = %i\n", hdr->e_shnum);
 	printf("e_shstrndx = %i\n", hdr->e_shstrndx);
+*/
 }
 
 /*		make a copy of ptr		*/
@@ -113,15 +114,21 @@ void	open_binary(int fd)
 {
 	void		*ptr;
 
+	// recover the file size
 	if ((g_woody->ptr_len = lseek(fd, 0, SEEK_END)) == (off_t)-1)
 		exit_woody("Error in open_binary(): lseek()", EXIT_FAILURE);
-	
+
+	// open the file with mmap
 	if ((ptr = mmap(0, g_woody->ptr_len, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
 		exit_woody("Error in open_binary(): mmap()", EXIT_FAILURE);
 
+	// check the header of the file, if it is corrupted
 	check_elf_hdr(ptr);
+
+	// copy the file
 	ptr_cpy(ptr);
-	
+
+	// close the file with munmap
 	if (munmap(ptr, g_woody->ptr_len) < 0)
 		exit_woody("Error in open_binary(): munmap()", EXIT_FAILURE);
 }
@@ -139,7 +146,9 @@ void	check_file(int argc, char **argv)
 	
 	if ((fd = open(argv[1], O_RDONLY)) < 0)
 		exit_woody("Error in check_args(): open()", EXIT_FAILURE);
-	else
-		open_binary(fd);
+	
+	// put a copy of the file in g_wooody->ptr
+	open_binary(fd);
+	
 	close(fd);
 }

@@ -6,4 +6,4 @@ woody_woodpacker
 woody
 libft/obj/
 libft/libft.a
-.gdb_history
+*/.gdb_history

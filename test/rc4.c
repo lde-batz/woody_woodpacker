@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/18 15:35:57 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/15 17:57:12 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/17 15:20:28 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,16 @@ int main(int argc, char **argv)
 		S[j] = swap;
 	}
 
+	for(i = 0; i < 256; i++)
+	{
+		printf("%02hhX", S[i]);
+		if (i % 4 == 3)
+			printf("  ");
+		if (i % 16 == 15)
+			printf("\n");
+
+	}
+
 // chiffre le message octet par octet
 	i = 0;
 	j = 0;
@@ -108,6 +118,16 @@ int main(int argc, char **argv)
 		swap = S[i];
 		S[i] = S[j];
 		S[j] = swap;
+	}
+
+	for(i = 0; i < 256; i++)
+	{
+		printf("%02hhX", S[i]);
+		if (i % 4 == 3)
+			printf("  ");
+		if (i % 16 == 15)
+			printf("\n");
+
 	}
 
 // dechiffre le message octet par octet

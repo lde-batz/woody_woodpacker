@@ -1,10 +1,10 @@
-- parasite en assembleur
+- parasite en assembleur				clear
 
 
 - insertion dans le code du parasite
 
 
-- chiffrement de la section text
+- chiffrement de la section text		done
 
 - check header if version = 1
 bool elf_check_supported(Elf32_Ehdr *hdr) {
@@ -34,3 +34,11 @@ bool elf_check_supported(Elf32_Ehdr *hdr) {
 	}
 	return true;
 }
+
+
+- clear code
+	- comment			done
+	- parasite
+	- mummap			done
+	- ptr < size_ptr
+	- clean

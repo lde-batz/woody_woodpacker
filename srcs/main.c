@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 10:39:30 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/02/19 11:40:55 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/17 22:56:29 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,8 @@ int		main(int argc, char **argv)
 
 	//	check the arguments and if it's a good ELF 64 binary
 	check_file(argc, argv);
-	printf("Check!\n");
 
 	woody_woodpacker();
+	
 	exit_woody(NULL, EXIT_SUCCESS);
 }

@@ -69,7 +69,7 @@ rc4_1:
 	pop r8							; key string			(kstr)
 	mov r9, 0x10					; key length			(klen)
 	lea r10, [rel _text]			; sectin .text			(tstr)
-	mov r11, 0xbbbbbbbbbbbbbbbb		; section .text length	(tlen)
+	mov r11, 0xaaaaaaaa				; section .text length	(tlen)
 
 	sub rsp, 0x110					; S[256]	(+16: security)
 	xor rcx, rcx					; i = 0
@@ -77,7 +77,7 @@ rc4_1:
 
 ; initialization S[256]
 rc4_2:
-	mov byte[rsp + rcx], cl		; S[i] = i
+	mov byte[rsp + rcx], cl			; S[i] = i
 
 	inc rcx							; i++
 
@@ -105,7 +105,6 @@ rc4_3:
 	add r12, r13					; j += r13
 	add r12, r14					; j += r14
 
-	xor rdx, rdx
 	mov rax, r12
 	mov rbx, 0x100
 	div rbx							; rbx = j % 256
@@ -114,10 +113,8 @@ rc4_3:
 ; swap = S[i];
 ; S[i] = S[j];
 ; S[j] = swap;
-	xor r13, r13
 	mov r13b, byte[rsp + rcx]		; r13 = S[i]
 
-	xor r14, r14
 	mov r14b, byte[rsp + r12]		; r14 = S[j]
 
 	mov byte[rsp + rcx], r14b		; S[i] = S[j]
@@ -147,7 +144,6 @@ rc4_4:
 	xor r14, r14
 	mov r14b, byte[rsp + rcx]		; r14 = S[i]
 	add r13, r14					; j += S[i]
-	xor rdx, rdx
 	mov rax, r13
 	mov rbx, 0x100
 	div rbx
@@ -156,7 +152,6 @@ rc4_4:
 ; swap = S[i];
 ; S[i] = S[j];
 ; S[j] = swap;
-	xor r14, r14
 	mov r14b, byte[rsp + r12]		; r14 = S[i]
 
 	xor r15, r15
@@ -167,12 +162,10 @@ rc4_4:
 
 ; cipher = S[(S[i] + S[j]) % 256];
 	add r14, r15					; r14 = S[i] + S[j]
-	xor rdx, rdx
 	mov rax, r14
 	mov rbx, 0x100
 	div rbx
 	mov r14, rdx					; r14 = (S[i] + S[j]) % 256
-	xor r15, r15
 	mov r15b, byte[rsp + r14]		; r15 = S[(S[i] + S[j]) % 256]
 
 ; message[k] = cipher ^ message[k];
@@ -188,4 +181,4 @@ rc4_4:
 
 rc4:
 	call rc4_1
-	.string db "0123456789abcdef", 0
+	.string db "0123456789abcdefghijklmnopqrstuv", 0

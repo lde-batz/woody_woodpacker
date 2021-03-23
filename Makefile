@@ -6,13 +6,14 @@
 #    By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/09 10:39:42 by lde-batz          #+#    #+#              #
-#    Updated: 2021/03/16 15:33:57 by lde-batz         ###   ########.fr        #
+#    Updated: 2021/03/19 10:33:48 by lde-batz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = woody_woodpacker
 
 SRC +=	main.c
+SRC +=	parsing.c
 SRC +=	check_file.c
 SRC +=	woody_woodpacker.c
 SRC +=	encrypt.c

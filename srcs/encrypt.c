@@ -6,11 +6,25 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/16 15:32:30 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/17 23:18:18 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/03/19 17:13:13 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
+
+// print the key value
+void		print_key(void)
+{
+	if (g_woody->opt_k)
+		printf("key_value: %s\n", g_woody->key);
+	else
+	{
+		printf("key_value: ");
+		for (int i = 0; i < g_woody->key_len; i++)
+			printf("%02hhX", g_woody->key[i]);
+		printf("\n");
+	}
+}
 
 void		generate_key(void)
 {
@@ -18,12 +32,12 @@ void		generate_key(void)
 	srand(time(NULL));
 
 	// generate the key byte by byte
-	for (int i = 0; i < RC4_KEY_LEN; i++)
+	for (int i = 0; i < g_woody->key_len; i++)
 	{
 		int r = rand();
-		g_woody->key_rc4[i] = (uint8_t)(r % 256);
+		g_woody->key[i] = (uint8_t)(r % 256);
 	}
-	g_woody->key_rc4[RC4_KEY_LEN] = '\0';
+	g_woody->key[g_woody->key_len] = '\0';
 }
 
 Elf64_Shdr	*find_text_section(void)
@@ -51,8 +65,9 @@ void	encrypt_rc4(unsigned char *section)
 	uint16_t	j;
 	uint8_t		S[256];
 
-	// generate a random key of RC4_KEY_LEN bytes
-	generate_key();
+	// generate a random key of g_woody->key_len bytes
+	if (!g_woody->opt_k)
+		generate_key();
 
 	// initialization of S[256]
 	for(i = 0; i < 256; i++)
@@ -61,7 +76,7 @@ void	encrypt_rc4(unsigned char *section)
 	j = 0;
 	for(i = 0; i < 256; i++)
 	{
-		j = (j + S[i] + g_woody->key_rc4[i % RC4_KEY_LEN]) % 256;
+		j = (j + S[i] + g_woody->key[i % g_woody->key_len]) % 256;
 		swap = S[i];
 		S[i] = S[j];
 		S[j] = swap;
@@ -91,29 +106,11 @@ void	encrypt_text_section(void)
 
 	// search the section .text
 	if (!(shdr = find_text_section()))
-	{
-		printf("Error! Section .text don't find.\n");
-		exit_woody(NULL, EXIT_FAILURE);
-	}
+		exit_woody("Error! Section .text don't find.", EXIT_FAILURE, 2);
 
 	// save the size of the section .text
 	g_woody->size_text_section = shdr->sh_size;
 
 	// encrypt the section .text with rc4 algorithm
 	encrypt_rc4((unsigned char *)g_woody->ptr + shdr->sh_offset);
-
-/*
-	printf("\n\n-----------------------------------------------------\n");
-	printf("sh_name = %i\n", shdr->sh_name);
-	printf("sh_type = %i\n", shdr->sh_type);
-	printf("sh_flags = %li\n", shdr->sh_flags);
-	printf("sh_addr = %li\n", shdr->sh_addr);
-	printf("sh_offset = %li\n", shdr->sh_offset);
-	printf("sh_size = %li\n", shdr->sh_size);
-	printf("sh_link = %i\n", shdr->sh_link);
-	printf("sh_info = %i\n", shdr->sh_info);
-	printf("sh_addralign = %li\n", shdr->sh_addralign);
-	printf("sh_entsize = %li\n", shdr->sh_entsize);
-	printf("\n\n");
-*/
 }

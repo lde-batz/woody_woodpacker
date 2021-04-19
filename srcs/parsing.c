@@ -6,42 +6,36 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/19 10:20:07 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/19 11:33:22 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/04/16 22:23:18 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
 
-void	init_key(char *key, bool opt_s)
+void	set_key(char *key)
 {
 	int	i;
 
 	i = 0;
-	while (key[i] && i < KEY_LEN_MAX)
+	while (key[i] && i < g_woody->key_len)
 	{
-		g_woody->key[i] = key[i];
+		g_woody->key[i] = (uint8_t)key[i];
 		i++;
 	}
 	g_woody->key[i] = '\0';
-	if (!opt_s)
-		g_woody->key_len = i;
 }
 
 void	parsing(int argc, char **argv)
 {
-	bool	opt_s = false;
-	
-	//	the program must have an argument minimum
+	char	*key;
+
 	if (argc < 2)
 		exit_help(EXIT_FAILURE);
 
-	//	print help if the file is "-h"
 	if (!ft_strcmp(argv[1], "-h"))
 		exit_help(EXIT_SUCCESS);
 
-	//	init the key length to 16 bytes 
 	g_woody->key_len = 16;
-
 	for (int i = 2; i < argc; i++)
 	{
 		if (!ft_strcmp(argv[i], "-h"))
@@ -53,8 +47,13 @@ void	parsing(int argc, char **argv)
 				printf("Error: the option requiert an argument -k <key>\n\n");
 				exit_help(EXIT_FAILURE);
 			}
-			init_key(argv[++i], opt_s);
 			g_woody->opt_k = true;
+			key = argv[++i];
+			if (ft_strlen(key) < 8)
+			{
+				printf("Error: option -k: invalid argument: '%s': key too small: 8 <= size <= 32\n\n", argv[i]);
+				exit_help(EXIT_FAILURE);
+			}
 		}
 		else if (!ft_strcmp(argv[i], "-s"))
 		{
@@ -69,7 +68,6 @@ void	parsing(int argc, char **argv)
 				printf("Error: option -s: invalid argument: '%s': out of range: 8 <= size <= 32\n\n", argv[i]);
 				exit_help(EXIT_FAILURE);
 			}
-			opt_s = true;
 		}
 		else
 		{
@@ -78,7 +76,5 @@ void	parsing(int argc, char **argv)
 		}
 	}
 	if (g_woody->opt_k)
-		if (ft_strlen((const char *)g_woody->key) < g_woody->key_len)
-			g_woody->key_len = ft_strlen((const char *)g_woody->key);
-	g_woody->key[g_woody->key_len] = '\0';
+		set_key(key);
 }

@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 16:31:55 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/19 17:14:12 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/04/16 22:20:27 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,23 +21,20 @@ void	exit_help(int status)
 	exit_woody(NULL, status, 0);
 }
 
-void	exit_woody(const char *str, int status, uint8_t error)
+void	exit_woody(const char *msg, int status, uint8_t error)
 {
-	// print the error message
 	if (error == 1)
-		perror(str);
+		perror(msg);
 	else if (error == 2)
-		ft_putendl(str);
+		ft_putendl(msg);
 
-	// free the global g_woody
 	if (g_woody)
 	{
-		// free the file pointer
 		if (g_woody->ptr)
-			free(g_woody->ptr);
+			if (munmap(g_woody->ptr, g_woody->old_ptr_len) < 0)
+				exit_woody("Error in open_binary(): munmap()", EXIT_FAILURE, 1);
 		free(g_woody);
 	}
 
-	// exit the programm
 	exit(status);
 }

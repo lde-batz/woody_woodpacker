@@ -6,7 +6,7 @@
 #    By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2020/11/09 10:39:42 by lde-batz          #+#    #+#              #
-#    Updated: 2021/03/19 10:33:48 by lde-batz         ###   ########.fr        #
+#    Updated: 2021/04/16 20:10:09 by lde-batz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,6 +18,7 @@ SRC +=	check_file.c
 SRC +=	woody_woodpacker.c
 SRC +=	encrypt.c
 SRC +=	exit.c
+SRC +=	ft_mem_cpy.c
 
 SRC_DIR = srcs/
 

@@ -6,188 +6,11 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 11:41:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/19 17:33:50 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/04/16 22:48:49 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
-
-void insert_code(unsigned long code_offset)
-{
-	//const char shellcode[] = "xebx1exb8x01x00x00x00xbfx01x00x00x00x5exbax0cx00x00x00x0fx05xb8x3cx00x00x00xbfx00x00x00x00x0fx05xe8xddxffxffxffx48x65x6cx6cx6fx20x57x6fx72x6cx64x0a";
-	const unsigned char shellcode[] = {
-		0xeb, 0x1e, 0xb8, 0x01, 0x00, 0x00, 0x00, 0xbf, 0x01, 0x00, 0x00, 0x00,
-		0x5e, 0xba, 0x0c, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xb8, 0x3c, 0x00, 0x00,
-		0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xe8, 0xdd, 0xff, 0xff,
-		0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
-		0x0a
-	};
-	char jmp[] = "xe9xffxffxffxff";
-	char pusha[] = "x60";
-	char popa[] = "x61";
-	int jmp_adr;
-	unsigned char *ptr = (void *)(g_woody->ptr) + code_offset;
-
-	jmp_adr = g_woody->last_entry;
-	ft_memcpy(jmp+1, &jmp_adr, sizeof(int));
-	printf("jmp = %i\n", jmp_adr);
-
-	/* On insert l'instruction pusha avant notre shellcode */
-	memcpy(ptr, pusha, sizeof(pusha)-1);
-	ptr += sizeof(pusha)-1;
-
-	/* On copie notre shellcode */
-	memcpy(ptr, shellcode, sizeof(shellcode)-1);
-	ptr += sizeof(shellcode)-1;
-
-	/* On place l'instruction popa juste avant notre JMP */
-	memcpy(ptr, popa, sizeof(popa)-1);
-	ptr += sizeof(popa)-1;
-
-	/* Et on termine par l'instruction JMP qui donnera la main au programme hote */
-	memcpy(ptr, jmp, sizeof(jmp)-1);
-}
-
-void	print_segment(void)
-{
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)g_woody->ptr;
-	Elf64_Phdr *phdr = (Elf64_Phdr *)(g_woody->ptr + ehdr->e_phoff);
-/*	Elf64_Phdr *next = NULL;
-	int		space_max = 0;
-	int		space = 0;
-	Elf64_Phdr *phdr_save = NULL;
-	long unsigned int	code_offset;
-
-	const unsigned char shellcode[] = {
-		0xeb, 0x1e, 0xb8, 0x01, 0x00, 0x00, 0x00, 0xbf, 0x01, 0x00, 0x00, 0x00,
-		0x5e, 0xba, 0x0c, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xb8, 0x3c, 0x00, 0x00,
-		0x00, 0xbf, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x05, 0xe8, 0xdd, 0xff, 0xff,
-		0xff, 0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x57, 0x6f, 0x72, 0x6c, 0x64,
-		0x0a
-	};
-	char jmp[] = "xe9xffxffxffxff";
-	char pusha[] = "x60";
-	char popa[] = "x61";
-
-	unsigned int code_size = (sizeof(shellcode)-1 + sizeof(jmp)-1 + sizeof(pusha)-1 + sizeof(popa)-1);
-
-	g_woody->last_entry = ehdr->e_entry;
-
-	if(g_woody->old_ptr_len < (long int)(ehdr->e_phoff + ehdr->e_phnum * ehdr->e_phentsize))
-	{
-		printf("Error! This file is corrupted. The file doesn't the good size\n");
-		exit_woody(NULL, EXIT_FAILURE, 0);
-	}
-*/
-	printf("diff = %li\n", (void*)phdr - (void*)ehdr);
-	for(int i = 0; i < ehdr->e_phnum; i++)
-	{
-		if (phdr->p_type == PT_LOAD)
-		{
-			printf("\n\n-----------------------------------------------------\n");
-			printf("p_type = %i\n", phdr->p_type);
-			printf("p_flags = %i\n", phdr->p_flags);
-			printf("p_offset = %li\n", phdr->p_offset);
-			printf("p_vaddr = %li\n", phdr->p_vaddr);
-			printf("p_paddr = %li\n", phdr->p_paddr);
-			printf("p_filesz = %li\n", phdr->p_filesz);
-			printf("p_memsz = %li\n", phdr->p_memsz);
-			printf("p_align = %li\n\n", phdr->p_align);
-/*
-			next = phdr+1;
-
-			if (next->p_type == PT_LOAD)
-			{
-				space = next->p_offset - phdr->p_offset;
-				printf("difference size = %i\n\n", space);
-				if (space < 4096 && space > space_max)
-				{
-					space_max = space;
-					phdr_save = phdr;
-				}
-			}*/
-		}
-		phdr++;
-	}
-	/*
-	if (phdr_save == NULL)
-	{
-		printf("Error! We don't have two PT_LOAD!\n");
-		exit_woody(NULL, EXIT_FAILURE, 0);
-	}
-	phdr = phdr_save;
-	next = phdr+1;
-	code_offset = phdr->p_offset + phdr->p_memsz;
-
-	if(phdr->p_memsz != phdr->p_filesz || (code_offset + code_size) > (next->p_offset + phdr->p_offset))
-	{
-		printf("Error! We don't have the space!\n");
-		exit_woody("Error! We don't have the space!", EXIT_FAILURE, 0);
-	}
-
-	printf("We have %i space!\n", space_max);
-
-	printf("last entry = %lu\n new entry = %lu\n", g_woody->last_entry, (phdr->p_offset + phdr->p_memsz));
-	ehdr->e_entry = (phdr->p_offset + phdr->p_memsz);
-
-	printf("sizeof = %u\n", code_size);
-
-	insert_code(code_offset);
-
-	phdr->p_memsz += code_size;
-	phdr->p_filesz += code_size;
-
-	Elf64_Ehdr *ehdr_test = (Elf64_Ehdr *)g_woody->old_ptr;
-	printf("binary change? entry = %lu\n", ehdr_test->e_entry);
-
-	printf("shellcode = %s\n", shellcode);*/
-
-}
-
-void	print_section(void)
-{
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)g_woody->ptr;
-	Elf64_Shdr *phdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
-	char *strtab;
-
-	printf("diff = %li\n", (void*)phdr - (void*)ehdr);
-	strtab = (char*)g_woody->ptr + phdr[ehdr->e_shstrndx].sh_offset;
-	for(int i = 0; i < ehdr->e_shnum; i++)
-	{
-		printf("\n\n-----------------------------------------------------\n");
-		printf("sh_name = %i\n", phdr->sh_name);
-		printf("sh_type = %i\n", phdr->sh_type);
-		printf("sh_flags = %li\n", phdr->sh_flags);
-		printf("sh_addr = %li\n", phdr->sh_addr);
-		printf("sh_offset = %li\n", phdr->sh_offset);
-		printf("sh_size = %li\n", phdr->sh_size);
-		printf("sh_link = %i\n", phdr->sh_link);
-		printf("sh_info = %i\n", phdr->sh_info);
-		printf("sh_addralign = %li\n", phdr->sh_addralign);
-		printf("sh_entsize = %li\n", phdr->sh_entsize);
-		printf("\n\n");
-
-		printf("string = %s\n", &strtab[phdr->sh_name]);
-
-		phdr++;
-	}
-
-	printf("file size = %lu\n", g_woody->old_ptr_len);
-	printf("woody size = %lu\n", g_woody->old_ptr_len + 388+sizeof(Elf64_Shdr));
-}
-
-unsigned int		align(unsigned int value, int base)
-{
-	return (value + (base - 1)) & -base;
-}
-
-void	print_help(void)
-{
-	print_section();
-//	print_segment();
-//	testprint();
-//	printf("align = %u\n", align(4192, 16));
-}
 
 unsigned char		parasite[PARASITE_LEN + KEY_LEN_MAX] = {
 	0x50, 0x53, 0x51, 0x52, 0x56, 0x57, 0x54, 0x41, 0x50, 0x41,
@@ -198,7 +21,7 @@ unsigned char		parasite[PARASITE_LEN + KEY_LEN_MAX] = {
 	0x5c, 0x5f, 0x5e, 0x5a, 0x59, 0x5b, 0x58, 0xe9, 0xfb, 0xff,
 	0xff, 0xff, 0x5e, 0xbf, 0x01, 0x00, 0x00, 0x00, 0xba, 0x0f,
 	0x00, 0x00, 0x00, 0xb8, 0x01, 0x00, 0x00, 0x00, 0x0f, 0x05,
-	0xe9, 0x00, 0x01, 0x00, 0x00, 0xe8, 0xe4, 0xff, 0xff, 0xff,
+	0xe9, 0x03, 0x01, 0x00, 0x00, 0xe8, 0xe4, 0xff, 0xff, 0xff,
 	0x2e, 0x2e, 0x2e, 0x2e, 0x57, 0x4f, 0x4f, 0x44, 0x59, 0x2e,
 	0x2e, 0x2e, 0x2e, 0x0a, 0x00, 0xc3, 0x41, 0x58, 0x41, 0xb9,
 	0x10, 0x00, 0x00, 0x00, 0x4c, 0x8d, 0x15, 0xf0, 0xff, 0xff,
@@ -216,15 +39,15 @@ unsigned char		parasite[PARASITE_LEN + KEY_LEN_MAX] = {
 	0x7c, 0xb6, 0x48, 0x31, 0xc9, 0x4d, 0x31, 0xe4, 0x4d, 0x31,
 	0xed, 0x49, 0xff, 0xc4, 0x48, 0x31, 0xd2, 0x4c, 0x89, 0xe0,
 	0xbb, 0x00, 0x01, 0x00, 0x00, 0x48, 0xf7, 0xf3, 0x49, 0x89,
-	0xd4, 0x4d, 0x31, 0xf6, 0x44, 0x8a, 0x34, 0x0c, 0x4d, 0x01,
+	0xd4, 0x4d, 0x31, 0xf6, 0x46, 0x8a, 0x34, 0x24, 0x4d, 0x01,
 	0xf5, 0x4c, 0x89, 0xe8, 0xbb, 0x00, 0x01, 0x00, 0x00, 0x48,
 	0xf7, 0xf3, 0x49, 0x89, 0xd5, 0x46, 0x8a, 0x34, 0x24, 0x4d,
 	0x31, 0xff, 0x46, 0x8a, 0x3c, 0x2c, 0x46, 0x88, 0x3c, 0x24,
 	0x46, 0x88, 0x34, 0x2c, 0x4d, 0x01, 0xfe, 0x4c, 0x89, 0xf0,
 	0xbb, 0x00, 0x01, 0x00, 0x00, 0x48, 0xf7, 0xf3, 0x49, 0x89,
 	0xd6, 0x46, 0x8a, 0x3c, 0x34, 0x45, 0x30, 0x3a, 0x48, 0xff,
-	0xc1, 0x4c, 0x39, 0xd9, 0x7c, 0xa1, 0xe9, 0xc5, 0xfe, 0xff,
-	0xff, 0xe8, 0x10, 0xff, 0xff, 0xff
+	0xc1, 0x49, 0xff, 0xc2, 0x4c, 0x39, 0xd9, 0x7c, 0x9e, 0xe9,
+	0xc2, 0xfe, 0xff, 0xff, 0xe8, 0x0d, 0xff, 0xff, 0xff
 };
 
 uint16_t	parasite_addr_jmp_entry_offset = 58;
@@ -233,55 +56,178 @@ uint16_t	parasite_addr_text_section_offset = 117;
 uint16_t	parasite_size_text_section_offset = 123;
 uint16_t	parasite_key_offset = PARASITE_LEN;
 
-int		find_bss_section(void)
+unsigned int		align(unsigned int value, int base)
+{
+	return (value + (base - 1)) & -base;
+}
+
+void	find_sections(void)
 {
 	char 		*strtab;
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
 
+	strtab = (char*)g_woody->ptr + shdr[ehdr->e_shstrndx].sh_offset;
+	for (int i = 0; i < ehdr->e_shnum; i++)
+	{
+		if (!ft_strcmp(&strtab[shdr->sh_name], ".text"))
+			g_woody->info.text_shdr = shdr;
+		else if (!ft_strcmp(&strtab[shdr->sh_name], ".data"))
+			g_woody->info.data_shdr = shdr;
+		else if (!ft_strcmp(&strtab[shdr->sh_name], ".bss"))
+			g_woody->info.bss_shdr = shdr;
+		shdr++;
+	}
+	if (!g_woody->info.text_shdr)
+		exit_woody("Error: section .text not found\n", EXIT_FAILURE, 2);
+	if (!g_woody->info.data_shdr)
+		exit_woody("Error: section .data not found\n", EXIT_FAILURE, 2);
+	if (!g_woody->info.bss_shdr)
+		exit_woody("Error: section .bss not found\n", EXIT_FAILURE, 2);
+}
+
+void	modify_load_segments(void)
+{
+	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
+	Elf64_Phdr	*phdr = (Elf64_Phdr *)(g_woody->ptr + ehdr->e_phoff);
+
+	g_woody->info.load_phdr = NULL;
+	for(int i = 0; i < ehdr->e_phnum; i++)
+	{
+		if (phdr->p_type == 1)
+			phdr->p_flags = PF_R | PF_W | PF_X;
+		if (phdr->p_type == 1 && (g_woody->info.data_shdr->sh_offset >= phdr->p_offset
+			&& g_woody->info.data_shdr->sh_offset < phdr->p_offset + phdr->p_filesz))
+		{
+			phdr->p_flags = PF_R | PF_W | PF_X;
+			g_woody->info.load_phdr = phdr;
+			g_woody->info.new_entry = phdr->p_vaddr + phdr->p_memsz;
+			g_woody->info.offset_code = phdr->p_offset + phdr->p_filesz;
+		}
+		else if (g_woody->info.load_phdr && phdr->p_offset > g_woody->info.load_phdr->p_offset + g_woody->info.load_phdr->p_filesz)
+		{
+			phdr->p_offset += g_woody->info.added_size;
+			phdr->p_paddr ? phdr->p_paddr += g_woody->info.added_size : 0;
+			phdr->p_vaddr ? phdr->p_vaddr += g_woody->info.added_size : 0;
+		}
+		phdr += 1;
+	}
+	if (!g_woody->info.load_phdr)
+		exit_woody("Error: data segement not found\n", EXIT_FAILURE, 2);
+}
+
+void	modify_sections(void)
+{
+	char 		*strtab;
+	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
+	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
 	strtab = (char*)g_woody->ptr + shdr[ehdr->e_shstrndx].sh_offset;	// tab of all section names
 	for (int i = 0; i < ehdr->e_shnum; i++)
 	{
-		// check if it is the section .text
-		if (!ft_strcmp(&strtab[shdr->sh_name], ".bss"))
-			return (i);
+		if (shdr->sh_offset >= g_woody->info.load_phdr->p_offset + g_woody->info.load_phdr->p_filesz && ft_strcmp(".bss", &strtab[shdr->sh_name]))
+		{
+			shdr->sh_addr ? shdr->sh_addr += g_woody->info.added_size : 0;
+			shdr->sh_offset += g_woody->info.added_size;
+		}
 		shdr++;
 	}
-	return (0);
 }
 
-void	add_new_section(int idx_bss)
+void	update_hdr(void)
 {
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
-	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
-	Elf64_Shdr	*pre_shdr;
+	
+	ehdr->e_shoff += g_woody->info.added_size;
+	ehdr->e_entry = g_woody->info.new_entry;
+	g_woody->info.load_phdr->p_filesz += g_woody->info.added_size;
+	g_woody->info.load_phdr->p_memsz = g_woody->info.load_phdr->p_filesz;
+}
 
-	pre_shdr = &shdr[idx_bss];
-	shdr = &shdr[idx_bss + 1];
+void	setup_parasite(void)
+{
+	int		offset_text_section = g_woody->info.text_shdr->sh_addr - (g_woody->info.new_entry + parasite_addr_text_section_offset) - 4;
+	int		offset_old_entry = g_woody->info.old_entry - (g_woody->info.new_entry + parasite_addr_jmp_entry_offset) - 4;
+
+	ft_mem_cpy(&parasite[parasite_addr_jmp_entry_offset], &offset_old_entry, sizeof(int));
+	ft_mem_cpy(&parasite[parasite_key_len_offset], &g_woody->key_len, sizeof(int));
+	ft_mem_cpy(&parasite[parasite_addr_text_section_offset], &offset_text_section, sizeof(int));
+	ft_mem_cpy(&parasite[parasite_size_text_section_offset], &(g_woody->info.text_shdr->sh_size), sizeof(int));
+	ft_mem_cpy(&parasite[parasite_key_offset], g_woody->key, g_woody->key_len);
 
 }
 
-void	woody_woodpacker(void)
+void	create_new_program(void)
 {
+	int			i;
 	int			fd;
-	int			idx_bss;
+	void		*ptr;
+
+	ptr = malloc(g_woody->ptr_len);
+
+	i = 0;
+	ft_mem_cpy(ptr, g_woody->ptr, g_woody->info.offset_code);
+	i += g_woody->info.offset_code;
+	ft_memset(ptr + i, 0, g_woody->info.bss_shdr->sh_size);
+	i += g_woody->info.bss_shdr->sh_size;
+	ft_mem_cpy(ptr + i, parasite, g_woody->info.parasite_size);
+	i += g_woody->info.parasite_size;
+	ft_memset(ptr + i, 0x90, g_woody->info.parasite_mem_size - g_woody->info.parasite_size);
+	i += g_woody->info.parasite_mem_size - g_woody->info.parasite_size;
+	ft_mem_cpy(ptr + i, g_woody->ptr + g_woody->info.offset_code, (size_t)(g_woody->old_ptr_len - g_woody->info.offset_code));
+
+	fd = open("woody", O_WRONLY | O_CREAT | O_TRUNC, (mode_t)0755);
+	if (fd < 0)
+		exit_woody("Error: can't open new file woody\n", EXIT_FAILURE, 2);
+	write(fd, ptr, g_woody->ptr_len);
+	if (close(fd) != 0)
+		exit_woody("Error: can't close woody properly\n", EXIT_FAILURE, 2);
+
+	free(ptr);
+}
+
+void	packer(void)
+{
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
-	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
 
-	print_help();
+	if (!g_woody->opt_k)
+		generate_key();
 
-	if ((idx_bss = find_bss_section()) == -1)
-		exit_woody("Error: section .bss not found\n", EXIT_FAILURE, 2);
+// Initialization
+	find_sections();
+	g_woody->info.old_entry = ehdr->e_entry;
+	g_woody->info.parasite_size = PARASITE_LEN + g_woody->key_len;
+	g_woody->info.parasite_mem_size = align(g_woody->info.parasite_size, 16);
+	g_woody->info.added_size = g_woody->info.parasite_mem_size + g_woody->info.bss_shdr->sh_size;
+	g_woody->ptr_len = g_woody->old_ptr_len + g_woody->info.added_size;
 
-	add_new_section(idx_bss);
+	modify_load_segments();
+	modify_sections();
 
-	// encrypt the section ".text"
 	encrypt_text_section();
 
-	// create the "woody" file
-	fd = open("woody", O_WRONLY | O_CREAT, 0555);
-	write(fd, g_woody->ptr, g_woody->ptr_len);
-	close(fd);
+	update_hdr();
+	setup_parasite();
+	create_new_program();
 
 	print_key();
+}
+
+void	woody_woodpacker(char *file)
+{
+	int	fd;
+
+	if ((fd = open(file, O_RDONLY)) < 0)
+		exit_woody("Error in check_args(): open()", EXIT_FAILURE, 1);
+	if ((g_woody->old_ptr_len = lseek(fd, 0, SEEK_END)) == (off_t)-1)
+		exit_woody("Error in open_binary(): lseek()", EXIT_FAILURE, 1);
+	if ((g_woody->ptr = mmap(0, g_woody->old_ptr_len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+		exit_woody("Error in open_binary(): mmap()", EXIT_FAILURE, 1);
+
+	check_file();
+	packer();
+
+	if ((munmap(g_woody->ptr, g_woody->old_ptr_len)))
+		exit_woody("Error in open_binary(): munmap()", EXIT_FAILURE, 1);
+	if (close(fd) < 0)
+		exit_woody("Error in open_binary(): close()", EXIT_FAILURE, 1);
 }

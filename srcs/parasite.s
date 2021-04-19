@@ -142,7 +142,7 @@ rc4_4:
 
 ; j = (j + S[i]) % 256;
 	xor r14, r14
-	mov r14b, byte[rsp + rcx]		; r14 = S[i]
+	mov r14b, byte[rsp + r12]		; r14 = S[i]
 	add r13, r14					; j += S[i]
 	mov rax, r13
 	mov rbx, 0x100
@@ -172,6 +172,7 @@ rc4_4:
 	xor byte[r10], r15b
 
 	inc rcx							; k++
+	inc r10							; message++
 
 	cmp rcx, r11
 	jl rc4_4						; while (k < slen)

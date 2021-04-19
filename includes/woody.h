@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 10:40:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/03/19 17:03:49 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/04/16 22:33:39 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,23 +24,39 @@
 # include <time.h>
 # include <elf.h>
 
-# define PARASITE_LEN 346
+# define PARASITE_LEN 349
 # define KEY_LEN_MAX 32
+# define CHMOD_777 7
+
+typedef struct	s_infos
+{
+	uint64_t	parasite_size;
+	uint64_t	parasite_mem_size;
+
+	Elf64_Shdr	*text_shdr;
+	Elf64_Shdr	*data_shdr;
+	Elf64_Shdr	*bss_shdr;
+	Elf64_Phdr	*load_phdr;
+
+	Elf64_Addr	old_entry;
+	uint64_t	new_entry;
+
+	uint64_t	added_size;
+	uint32_t	offset_code;
+}				t_infos;
 
 typedef struct	s_woody
 {
 	void				*ptr;
 	long int			old_ptr_len;
 	long int			ptr_len;
-	
-	uint8_t				endian;
-	long unsigned int	last_entry;
 
 	uint8_t				key[KEY_LEN_MAX + 1];
 	uint8_t				key_len;
-	uint64_t			size_text_section;
 
 	bool				opt_k;
+
+	t_infos				info;
 }				t_woody;
 
 extern t_woody	*g_woody;
@@ -49,17 +65,21 @@ extern t_woody	*g_woody;
 void			parsing(int argc, char **argv);
 
 /*		check_file.c		*/
-void			check_file(char *file);
+void			check_file();
 
 /*		woody_woodpacker.c		*/
-void			woody_woodpacker(void);
+void			woody_woodpacker(char *file);
 
 /*		encrypt.c		*/
 void			encrypt_text_section(void);
+void			generate_key(void);
 void			print_key(void);
 
 /*		exit.c		*/
-void			exit_woody(const char *str, int status, uint8_t error);
+void			exit_woody(const char *msg, int status, uint8_t error);
 void			exit_help(int status);
+
+/*		ft_mem_cpy.c		*/
+void	ft_mem_cpy(void *dst, const void *src, size_t n);
 
 #endif

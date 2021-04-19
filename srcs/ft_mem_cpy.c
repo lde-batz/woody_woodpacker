@@ -1,35 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   ft_mem_cpy.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2020/11/09 10:39:30 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 20:43:24 by lde-batz         ###   ########.fr       */
+/*   Created: 2021/04/16 20:08:03 by lde-batz          #+#    #+#             */
+/*   Updated: 2021/04/16 20:09:02 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
 
-t_woody	*g_woody;
-
-void	init_g_woody(void)
+void	ft_mem_cpy(void *dst, const void *src, size_t n)
 {
-	if (!(g_woody = (t_woody *)malloc(sizeof(t_woody))))
-		exit_woody("Error in init_g_woody(): malloc()", EXIT_FAILURE, 1);
-
-	ft_bzero(g_woody, sizeof(t_woody));
-}
-
-int		main(int argc, char **argv)
-{
-	init_g_woody();
-
-	parsing(argc, argv);
-
-	woody_woodpacker(argv[1]);
+	size_t	i;
 	
-	exit_woody(NULL, EXIT_SUCCESS, 0);
-	return (0);
+	i = 0;
+	while (i < n)
+	{
+		((char *)dst)[i] = ((char *)src)[i];
+		i++;
+	}
 }

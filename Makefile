@@ -38,7 +38,7 @@ INC_FLAG = -I$(INC) -I$(LIB)
 
 LIB_FLAG = -L ./$(LIB) -lft
 
-CC = gcc
+CC = clang
 
 CFLAGS += -Wall -Wextra
 ifeq ($(d), 1)

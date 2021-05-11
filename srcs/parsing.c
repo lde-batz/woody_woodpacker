@@ -12,23 +12,8 @@
 
 #include "woody.h"
 
-void	set_key(char *key)
-{
-	int	i;
-
-	i = 0;
-	while (key[i] && i < g_woody->key_len)
-	{
-		g_woody->key[i] = (uint8_t)key[i];
-		i++;
-	}
-	g_woody->key[i] = '\0';
-}
-
 void	parsing(int argc, char **argv)
 {
-	char	*key;
-
 	if (argc < 2)
 		exit_help(EXIT_FAILURE);
 
@@ -40,21 +25,6 @@ void	parsing(int argc, char **argv)
 	{
 		if (!ft_strcmp(argv[i], "-h"))
 			exit_help(EXIT_SUCCESS);
-		else if (!ft_strcmp(argv[i], "-k"))
-		{
-			if (i + 1 >= argc)
-			{
-				printf("Error: the option requiert an argument -k <key>\n\n");
-				exit_help(EXIT_FAILURE);
-			}
-			g_woody->opt_k = true;
-			key = argv[++i];
-			if (ft_strlen(key) < 8)
-			{
-				printf("Error: option -k: invalid argument: '%s': key too small: 8 <= size <= 32\n\n", argv[i]);
-				exit_help(EXIT_FAILURE);
-			}
-		}
 		else if (!ft_strcmp(argv[i], "-s"))
 		{
 			if (i + 1 >= argc)
@@ -75,6 +45,4 @@ void	parsing(int argc, char **argv)
 			exit_help(EXIT_FAILURE);
 		}
 	}
-	if (g_woody->opt_k)
-		set_key(key);
 }

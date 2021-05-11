@@ -56,6 +56,10 @@ uint16_t	parasite_addr_text_section_offset = 117;
 uint16_t	parasite_size_text_section_offset = 123;
 uint16_t	parasite_key_offset = PARASITE_LEN;
 
+uint16_t 	parasite_search_offset = 4500;
+uint16_t	parasite_search_depth = 2048;
+uint16_t	infection_detection_threshold = 32;
+
 unsigned int		align(unsigned int value, int base)
 {
 	return (value + (base - 1)) & -base;
@@ -84,6 +88,25 @@ void	find_sections(void)
 		exit_woody("Error: section .data not found\n", EXIT_FAILURE, 2);
 	if (!g_woody->info.bss_shdr)
 		exit_woody("Error: section .bss not found\n", EXIT_FAILURE, 2);
+
+	int infected = 0;
+	for (uint16_t depth = 0; depth < parasite_search_depth; ++depth)
+	{
+		if (((unsigned char*)(g_woody->ptr + g_woody->info.bss_shdr->sh_addr - parasite_search_offset))[depth] == parasite[0]) {
+			for (uint16_t para_idx = 0; para_idx < PARASITE_LEN - 1; para_idx++) {
+				if (((unsigned char*)(g_woody->ptr + g_woody->info.bss_shdr->sh_addr - parasite_search_offset))[depth + para_idx] == parasite[para_idx]) {
+					infected++;
+					if (infected > infection_detection_threshold)
+						exit_woody("Error: binary seems already packed", EXIT_FAILURE, 2);
+				}
+				else 
+				{
+					infected = 0;
+					break;
+				}
+			}
+		}
+	}
 }
 
 void	modify_load_segments(void)
@@ -94,8 +117,9 @@ void	modify_load_segments(void)
 	g_woody->info.load_phdr = NULL;
 	for(int i = 0; i < ehdr->e_phnum; i++)
 	{
-		if (phdr->p_type == 1)
+		if (phdr->p_type == 1) // Check this value
 			phdr->p_flags = PF_R | PF_W | PF_X;
+
 		if (phdr->p_type == 1 && (g_woody->info.data_shdr->sh_offset >= phdr->p_offset
 			&& g_woody->info.data_shdr->sh_offset < phdr->p_offset + phdr->p_filesz))
 		{
@@ -189,11 +213,11 @@ void	packer(void)
 {
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 
-	if (!g_woody->opt_k)
-		generate_key();
+	generate_key();
 
 // Initialization
 	find_sections();
+
 	g_woody->info.old_entry = ehdr->e_entry;
 	g_woody->info.parasite_size = PARASITE_LEN + g_woody->key_len;
 	g_woody->info.parasite_mem_size = align(g_woody->info.parasite_size, 16);

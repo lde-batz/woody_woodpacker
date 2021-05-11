@@ -16,7 +16,6 @@ void	exit_help(int status)
 {
 	printf("Usage: ./woody_woodpacker [file] [option(s)]\n");
 	printf("\nOptions:\n  -h\t\tPrint help and exit\n");
-	printf("  -k <key>\tKey value of the encryption\n");
 	printf("  -s <size>\tSize of the encryption key (between 8 and 32)\n");
 	exit_woody(NULL, status, 0);
 }
@@ -35,6 +34,5 @@ void	exit_woody(const char *msg, int status, uint8_t error)
 				exit_woody("Error in open_binary(): munmap()", EXIT_FAILURE, 1);
 		free(g_woody);
 	}
-
 	exit(status);
 }

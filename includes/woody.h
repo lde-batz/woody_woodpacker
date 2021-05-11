@@ -32,17 +32,15 @@ typedef struct	s_infos
 {
 	uint64_t	parasite_size;
 	uint64_t	parasite_mem_size;
-
 	Elf64_Shdr	*text_shdr;
 	Elf64_Shdr	*data_shdr;
 	Elf64_Shdr	*bss_shdr;
 	Elf64_Phdr	*load_phdr;
-
 	Elf64_Addr	old_entry;
 	uint64_t	new_entry;
-
 	uint64_t	added_size;
 	uint32_t	offset_code;
+	char padding[4];
 }				t_infos;
 
 typedef struct	s_woody
@@ -50,13 +48,11 @@ typedef struct	s_woody
 	void				*ptr;
 	long int			old_ptr_len;
 	long int			ptr_len;
-
-	uint8_t				key[KEY_LEN_MAX + 1];
 	uint8_t				key_len;
-
-	bool				opt_k;
-
+	char 	padding[7];
 	t_infos				info;
+	uint8_t				key[KEY_LEN_MAX + 1];
+	char  	more_padding[7];
 }				t_woody;
 
 extern t_woody	*g_woody;

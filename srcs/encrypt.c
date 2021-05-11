@@ -14,15 +14,10 @@
 
 void		print_key(void)
 {
-	if (g_woody->opt_k)
-		printf("key_value: %s\n", g_woody->key);
-	else
-	{
-		printf("key_value: ");
-		for (int i = 0; i < g_woody->key_len; i++)
-			printf("%02hhX", g_woody->key[i]);
-		printf("\n");
-	}
+	printf("key_value: ");
+	for (int i = 0; i < g_woody->key_len; i++)
+		printf("%02hhX", g_woody->key[i]);
+	printf("\n");
 }
 
 void		generate_key(void)

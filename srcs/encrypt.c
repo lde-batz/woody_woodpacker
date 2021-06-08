@@ -6,12 +6,13 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/16 15:32:30 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 09:26:13 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/06/07 12:32:39 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "woody.h"
 
+/*		display the key in hexadeciman format		*/
 void		print_key(void)
 {
 	printf("key_value: ");
@@ -20,8 +21,10 @@ void		print_key(void)
 	printf("\n");
 }
 
+/*		generate a random key		*/
 void		generate_key(void)
 {
+	// initialization of the rand() function
 	srand(time(NULL));
 
 	for (int i = 0; i < g_woody->key_len; i++)
@@ -32,6 +35,7 @@ void		generate_key(void)
 	g_woody->key[g_woody->key_len] = '\0';
 }
 
+/*		encrypt the section with the RC4 algorithm		*/
 void	encrypt_rc4(unsigned char *section, uint64_t size)
 {
 	uint8_t		swap;
@@ -40,9 +44,11 @@ void	encrypt_rc4(unsigned char *section, uint64_t size)
 	uint16_t	j;
 	uint8_t		S[256];
 
+	// initialization of S
 	for(i = 0; i < 256; i++)
 		S[i] = i;
 
+	// mix S
 	j = 0;
 	for(i = 0; i < 256; i++)
 	{
@@ -52,6 +58,7 @@ void	encrypt_rc4(unsigned char *section, uint64_t size)
 		S[j] = swap;
 	}
 
+	// encrypt section
 	i = 0;
 	j = 0;
 	for (uint64_t k = 0; k < size; k++)
@@ -69,9 +76,10 @@ void	encrypt_rc4(unsigned char *section, uint64_t size)
 	}
 }
 
+/*		encrypt the text section of the binary		*/
 void	encrypt_text_section(void)
 {
-	uint64_t	size = g_woody->info.text_shdr->sh_size;
+	uint64_t	size = g_woody->datas.text_shdr->sh_size;
 
-	encrypt_rc4((unsigned char *)g_woody->ptr + g_woody->info.text_shdr->sh_offset, size);
+	encrypt_rc4((unsigned char *)g_woody->ptr + g_woody->datas.text_shdr->sh_offset, size);
 }

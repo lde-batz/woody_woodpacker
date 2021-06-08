@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 10:40:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 22:33:39 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/06/08 09:10:00 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,12 @@
 # include <elf.h>
 
 # define PARASITE_LEN 349
+# define KEY_LEN_MIN 8
+# define KEY_LEN_DEF 16
 # define KEY_LEN_MAX 32
 # define CHMOD_777 7
 
-typedef struct	s_infos
+typedef struct	s_datas
 {
 	uint64_t	parasite_size;
 	uint64_t	parasite_mem_size;
@@ -38,42 +40,43 @@ typedef struct	s_infos
 	Elf64_Phdr	*load_phdr;
 	Elf64_Addr	old_entry;
 	uint64_t	new_entry;
+	uint64_t	size_bss;
 	uint64_t	added_size;
 	uint32_t	offset_code;
-	char padding[4];
-}				t_infos;
+	char	padding[4];
+}				t_datas;
 
 typedef struct	s_woody
 {
-	void				*ptr;
-	long int			old_ptr_len;
-	long int			ptr_len;
-	uint8_t				key_len;
-	char 	padding[7];
-	t_infos				info;
-	uint8_t				key[KEY_LEN_MAX + 1];
-	char  	more_padding[7];
+	void		*ptr;
+	long int	old_ptr_len;
+	long int	ptr_len;
+	uint8_t		key_len;
+	char	padding[7];
+	t_datas		datas;
+	uint8_t		key[KEY_LEN_MAX + 1];
+	char	more_padding[7];
 }				t_woody;
 
 extern t_woody	*g_woody;
 
 /*		parsing.c		*/
-void			parsing(int argc, char **argv);
+void	parsing(int argc, char **argv);
 
 /*		check_file.c		*/
-void			check_file();
+void	check_file();
 
 /*		woody_woodpacker.c		*/
-void			woody_woodpacker(char *file);
+void	woody_woodpacker(char *file);
 
 /*		encrypt.c		*/
-void			encrypt_text_section(void);
-void			generate_key(void);
-void			print_key(void);
+void	encrypt_text_section(void);
+void	generate_key(void);
+void	print_key(void);
 
 /*		exit.c		*/
-void			exit_woody(const char *msg, int status, uint8_t error);
-void			exit_help(int status);
+void	exit_woody(const char *msg, int status, uint8_t error);
+void	exit_help(int status);
 
 /*		ft_mem_cpy.c		*/
 void	ft_mem_cpy(void *dst, const void *src, size_t n);

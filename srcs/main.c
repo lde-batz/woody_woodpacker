@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/11/09 10:39:30 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 20:43:24 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/06/07 12:21:23 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 t_woody	*g_woody;
 
+/*		initialization of the global		*/
 void	init_g_woody(void)
 {
 	if (!(g_woody = (t_woody *)malloc(sizeof(t_woody))))

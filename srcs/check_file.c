@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 10:49:56 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 20:45:51 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/06/07 12:24:28 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 /*		check section headers of binary		*/
 void	check_elf_shdr(void)
 {
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)g_woody->ptr;
-	Elf64_Shdr *shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
+	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
+	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
+	char		*symtab = (char *)g_woody->ptr + shdr[ehdr->e_shstrndx].sh_offset;
 
 	// check if all program headers are in the file
 	if ((ehdr->e_shnum * ehdr->e_shentsize + ehdr->e_ehsize) > g_woody->old_ptr_len)
@@ -24,7 +25,7 @@ void	check_elf_shdr(void)
 
 	for (uint16_t i = 0; i < ehdr->e_shnum; i++)
 	{
-		if ((shdr->sh_offset + shdr->sh_size) > (uint64_t)g_woody->old_ptr_len)
+		if ((shdr->sh_offset + shdr->sh_size) > (uint64_t)g_woody->old_ptr_len && ft_strcmp(&symtab[shdr->sh_name], ".bss") != 0)
 			exit_woody("Error! This file is corrupted. The programs are too big for the file size.", EXIT_FAILURE, 2);
 		shdr++;
 	}
@@ -92,6 +93,7 @@ void	check_elf_hdr(void)
 		exit_woody("Error! This file is corrupted. Bad index of string table", EXIT_FAILURE, 2);
 }
 
+/*		check if the binary is corrupted		*/
 void	check_file(void)
 {
 	check_elf_hdr();

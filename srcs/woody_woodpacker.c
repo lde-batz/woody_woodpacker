@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 11:41:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/04/16 22:48:49 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/06/08 08:58:07 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ unsigned int		align(unsigned int value, int base)
 	return (value + (base - 1)) & -base;
 }
 
+/*		find the text, data, bss sections and check if it's the first packing of the binary		*/
 void	find_sections(void)
 {
 	char 		*strtab;
@@ -75,26 +76,27 @@ void	find_sections(void)
 	for (int i = 0; i < ehdr->e_shnum; i++)
 	{
 		if (!ft_strcmp(&strtab[shdr->sh_name], ".text"))
-			g_woody->info.text_shdr = shdr;
+			g_woody->datas.text_shdr = shdr;
 		else if (!ft_strcmp(&strtab[shdr->sh_name], ".data"))
-			g_woody->info.data_shdr = shdr;
+			g_woody->datas.data_shdr = shdr;
 		else if (!ft_strcmp(&strtab[shdr->sh_name], ".bss"))
-			g_woody->info.bss_shdr = shdr;
+			g_woody->datas.bss_shdr = shdr;
 		shdr++;
 	}
-	if (!g_woody->info.text_shdr)
+	if (!g_woody->datas.text_shdr)
 		exit_woody("Error: section .text not found\n", EXIT_FAILURE, 2);
-	if (!g_woody->info.data_shdr)
+	if (!g_woody->datas.data_shdr)
 		exit_woody("Error: section .data not found\n", EXIT_FAILURE, 2);
-	if (!g_woody->info.bss_shdr)
+	if (!g_woody->datas.bss_shdr)
 		exit_woody("Error: section .bss not found\n", EXIT_FAILURE, 2);
 
+/*
 	int infected = 0;
 	for (uint16_t depth = 0; depth < parasite_search_depth; ++depth)
 	{
-		if (((unsigned char*)(g_woody->ptr + g_woody->info.bss_shdr->sh_addr - parasite_search_offset))[depth] == parasite[0]) {
+		if (((unsigned char*)(g_woody->ptr + g_woody->datas.bss_shdr->sh_addr - parasite_search_offset))[depth] == parasite[0]) {
 			for (uint16_t para_idx = 0; para_idx < PARASITE_LEN - 1; para_idx++) {
-				if (((unsigned char*)(g_woody->ptr + g_woody->info.bss_shdr->sh_addr - parasite_search_offset))[depth + para_idx] == parasite[para_idx]) {
+				if (((unsigned char*)(g_woody->ptr + g_woody->datas.bss_shdr->sh_addr - parasite_search_offset))[depth + para_idx] == parasite[para_idx]) {
 					infected++;
 					if (infected > infection_detection_threshold)
 						exit_woody("Error: binary seems already packed", EXIT_FAILURE, 2);
@@ -107,79 +109,91 @@ void	find_sections(void)
 			}
 		}
 	}
+	*/
 }
 
+/*		modify the rights of load segments and the addresses of the segments after the parasite		*/
 void	modify_load_segments(void)
 {
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 	Elf64_Phdr	*phdr = (Elf64_Phdr *)(g_woody->ptr + ehdr->e_phoff);
 
-	g_woody->info.load_phdr = NULL;
+	g_woody->datas.load_phdr = NULL;
 	for(int i = 0; i < ehdr->e_phnum; i++)
 	{
-		if (phdr->p_type == 1) // Check this value
+		// modify the rights of load segments
+		if (phdr->p_type == PT_LOAD)
 			phdr->p_flags = PF_R | PF_W | PF_X;
 
-		if (phdr->p_type == 1 && (g_woody->info.data_shdr->sh_offset >= phdr->p_offset
-			&& g_woody->info.data_shdr->sh_offset < phdr->p_offset + phdr->p_filesz))
+		// modify the load segments that contains the parasite
+		if (phdr->p_type == 1 && (g_woody->datas.data_shdr->sh_offset >= phdr->p_offset
+			&& g_woody->datas.data_shdr->sh_offset < phdr->p_offset + phdr->p_filesz))
 		{
 			phdr->p_flags = PF_R | PF_W | PF_X;
-			g_woody->info.load_phdr = phdr;
-			g_woody->info.new_entry = phdr->p_vaddr + phdr->p_memsz;
-			g_woody->info.offset_code = phdr->p_offset + phdr->p_filesz;
+			g_woody->datas.load_phdr = phdr;
+			g_woody->datas.new_entry = phdr->p_vaddr + phdr->p_memsz;
+			g_woody->datas.offset_code = phdr->p_offset + phdr->p_filesz;
+			g_woody->datas.size_bss = phdr->p_memsz - phdr->p_filesz;
+			g_woody->datas.added_size = g_woody->datas.parasite_mem_size + g_woody->datas.size_bss;
 		}
-		else if (g_woody->info.load_phdr && phdr->p_offset > g_woody->info.load_phdr->p_offset + g_woody->info.load_phdr->p_filesz)
+		// modify the adresses of the segments after the parasite
+		else if (g_woody->datas.load_phdr && phdr->p_offset > g_woody->datas.load_phdr->p_offset + g_woody->datas.load_phdr->p_filesz)
 		{
-			phdr->p_offset += g_woody->info.added_size;
-			phdr->p_paddr ? phdr->p_paddr += g_woody->info.added_size : 0;
-			phdr->p_vaddr ? phdr->p_vaddr += g_woody->info.added_size : 0;
+			phdr->p_offset += g_woody->datas.added_size;
+			phdr->p_paddr ? phdr->p_paddr += g_woody->datas.added_size : 0;
+			phdr->p_vaddr ? phdr->p_vaddr += g_woody->datas.added_size : 0;
 		}
 		phdr += 1;
 	}
-	if (!g_woody->info.load_phdr)
+	if (!g_woody->datas.load_phdr)
 		exit_woody("Error: data segement not found\n", EXIT_FAILURE, 2);
 }
 
+/*		modify the addresses of the sections after the parasite		*/
 void	modify_sections(void)
 {
 	char 		*strtab;
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 	Elf64_Shdr	*shdr = (Elf64_Shdr *)(g_woody->ptr + ehdr->e_shoff);
+	
 	strtab = (char*)g_woody->ptr + shdr[ehdr->e_shstrndx].sh_offset;	// tab of all section names
 	for (int i = 0; i < ehdr->e_shnum; i++)
 	{
-		if (shdr->sh_offset >= g_woody->info.load_phdr->p_offset + g_woody->info.load_phdr->p_filesz && ft_strcmp(".bss", &strtab[shdr->sh_name]))
+		if (shdr->sh_offset >= g_woody->datas.load_phdr->p_offset + g_woody->datas.load_phdr->p_filesz && ft_strcmp(".bss", &strtab[shdr->sh_name]))
 		{
-			shdr->sh_addr ? shdr->sh_addr += g_woody->info.added_size : 0;
-			shdr->sh_offset += g_woody->info.added_size;
+			shdr->sh_addr ? shdr->sh_addr += g_woody->datas.added_size : 0;
+			shdr->sh_offset += g_woody->datas.added_size;
 		}
 		shdr++;
 	}
 }
 
+/*		modify the header of the binary to be valid with the parasite		*/
 void	update_hdr(void)
 {
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 	
-	ehdr->e_shoff += g_woody->info.added_size;
-	ehdr->e_entry = g_woody->info.new_entry;
-	g_woody->info.load_phdr->p_filesz += g_woody->info.added_size;
-	g_woody->info.load_phdr->p_memsz = g_woody->info.load_phdr->p_filesz;
+	ehdr->e_shoff += g_woody->datas.added_size;
+	ehdr->e_entry = g_woody->datas.new_entry;
+	g_woody->datas.load_phdr->p_filesz += g_woody->datas.added_size;
+	g_woody->datas.load_phdr->p_memsz = g_woody->datas.load_phdr->p_filesz;
 }
 
+/*		modify the parasite with the good values		*/
 void	setup_parasite(void)
 {
-	int		offset_text_section = g_woody->info.text_shdr->sh_addr - (g_woody->info.new_entry + parasite_addr_text_section_offset) - 4;
-	int		offset_old_entry = g_woody->info.old_entry - (g_woody->info.new_entry + parasite_addr_jmp_entry_offset) - 4;
+	int		offset_text_section = g_woody->datas.text_shdr->sh_addr - (g_woody->datas.new_entry + parasite_addr_text_section_offset) - 4;
+	int		offset_old_entry = g_woody->datas.old_entry - (g_woody->datas.new_entry + parasite_addr_jmp_entry_offset) - 4;
 
 	ft_mem_cpy(&parasite[parasite_addr_jmp_entry_offset], &offset_old_entry, sizeof(int));
 	ft_mem_cpy(&parasite[parasite_key_len_offset], &g_woody->key_len, sizeof(int));
 	ft_mem_cpy(&parasite[parasite_addr_text_section_offset], &offset_text_section, sizeof(int));
-	ft_mem_cpy(&parasite[parasite_size_text_section_offset], &(g_woody->info.text_shdr->sh_size), sizeof(int));
+	ft_mem_cpy(&parasite[parasite_size_text_section_offset], &(g_woody->datas.text_shdr->sh_size), sizeof(int));
 	ft_mem_cpy(&parasite[parasite_key_offset], g_woody->key, g_woody->key_len);
 
 }
 
+/*		creation of woody		*/
 void	create_new_program(void)
 {
 	int			i;
@@ -189,15 +203,15 @@ void	create_new_program(void)
 	ptr = malloc(g_woody->ptr_len);
 
 	i = 0;
-	ft_mem_cpy(ptr, g_woody->ptr, g_woody->info.offset_code);
-	i += g_woody->info.offset_code;
-	ft_memset(ptr + i, 0, g_woody->info.bss_shdr->sh_size);
-	i += g_woody->info.bss_shdr->sh_size;
-	ft_mem_cpy(ptr + i, parasite, g_woody->info.parasite_size);
-	i += g_woody->info.parasite_size;
-	ft_memset(ptr + i, 0x90, g_woody->info.parasite_mem_size - g_woody->info.parasite_size);
-	i += g_woody->info.parasite_mem_size - g_woody->info.parasite_size;
-	ft_mem_cpy(ptr + i, g_woody->ptr + g_woody->info.offset_code, (size_t)(g_woody->old_ptr_len - g_woody->info.offset_code));
+	ft_mem_cpy(ptr, g_woody->ptr, g_woody->datas.offset_code);
+	i += g_woody->datas.offset_code;
+	ft_memset(ptr + i, 0, g_woody->datas.size_bss);
+	i += g_woody->datas.size_bss;
+	ft_mem_cpy(ptr + i, parasite, g_woody->datas.parasite_size);
+	i += g_woody->datas.parasite_size;
+	ft_memset(ptr + i, 0x90, g_woody->datas.parasite_mem_size - g_woody->datas.parasite_size);
+	i += g_woody->datas.parasite_mem_size - g_woody->datas.parasite_size;
+	ft_mem_cpy(ptr + i, g_woody->ptr + g_woody->datas.offset_code, (size_t)(g_woody->old_ptr_len - g_woody->datas.offset_code));
 
 	fd = open("woody", O_WRONLY | O_CREAT | O_TRUNC, (mode_t)0755);
 	if (fd < 0)
@@ -209,23 +223,23 @@ void	create_new_program(void)
 	free(ptr);
 }
 
+/*		packing of the binary		*/
 void	packer(void)
 {
 	Elf64_Ehdr	*ehdr = (Elf64_Ehdr *)g_woody->ptr;
 
 	generate_key();
 
-// Initialization
 	find_sections();
 
-	g_woody->info.old_entry = ehdr->e_entry;
-	g_woody->info.parasite_size = PARASITE_LEN + g_woody->key_len;
-	g_woody->info.parasite_mem_size = align(g_woody->info.parasite_size, 16);
-	g_woody->info.added_size = g_woody->info.parasite_mem_size + g_woody->info.bss_shdr->sh_size;
-	g_woody->ptr_len = g_woody->old_ptr_len + g_woody->info.added_size;
+	g_woody->datas.old_entry = ehdr->e_entry;
+	g_woody->datas.parasite_size = PARASITE_LEN + g_woody->key_len;
+	g_woody->datas.parasite_mem_size = align(g_woody->datas.parasite_size, 16);
 
 	modify_load_segments();
 	modify_sections();
+
+	g_woody->ptr_len = g_woody->old_ptr_len + g_woody->datas.added_size;
 
 	encrypt_text_section();
 
@@ -236,22 +250,25 @@ void	packer(void)
 	print_key();
 }
 
+/*		main program		*/
 void	woody_woodpacker(char *file)
 {
 	int	fd;
 
+	// open and read the binary
 	if ((fd = open(file, O_RDONLY)) < 0)
-		exit_woody("Error in check_args(): open()", EXIT_FAILURE, 1);
+		exit_woody("Error in woody_woodpacker(): open()", EXIT_FAILURE, 1);
 	if ((g_woody->old_ptr_len = lseek(fd, 0, SEEK_END)) == (off_t)-1)
-		exit_woody("Error in open_binary(): lseek()", EXIT_FAILURE, 1);
+		exit_woody("Error in woody_woodpacker(): lseek()", EXIT_FAILURE, 1);
 	if ((g_woody->ptr = mmap(0, g_woody->old_ptr_len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-		exit_woody("Error in open_binary(): mmap()", EXIT_FAILURE, 1);
+		exit_woody("Error in woody_woodpacker(): mmap()", EXIT_FAILURE, 1);
 
 	check_file();
 	packer();
 
+	// free and close the binary
 	if ((munmap(g_woody->ptr, g_woody->old_ptr_len)))
-		exit_woody("Error in open_binary(): munmap()", EXIT_FAILURE, 1);
+		exit_woody("Error in woody_woodpacker(): munmap()", EXIT_FAILURE, 1);
 	if (close(fd) < 0)
-		exit_woody("Error in open_binary(): close()", EXIT_FAILURE, 1);
+		exit_woody("Error in woody_woodpacker(): close()", EXIT_FAILURE, 1);
 }

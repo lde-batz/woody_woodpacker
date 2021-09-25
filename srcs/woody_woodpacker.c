@@ -6,7 +6,7 @@
 /*   By: lde-batz <lde-batz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/19 11:41:24 by lde-batz          #+#    #+#             */
-/*   Updated: 2021/06/08 08:58:07 by lde-batz         ###   ########.fr       */
+/*   Updated: 2021/09/25 16:16:44 by lde-batz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,27 +89,6 @@ void	find_sections(void)
 		exit_woody("Error: section .data not found\n", EXIT_FAILURE, 2);
 	if (!g_woody->datas.bss_shdr)
 		exit_woody("Error: section .bss not found\n", EXIT_FAILURE, 2);
-
-/*
-	int infected = 0;
-	for (uint16_t depth = 0; depth < parasite_search_depth; ++depth)
-	{
-		if (((unsigned char*)(g_woody->ptr + g_woody->datas.bss_shdr->sh_addr - parasite_search_offset))[depth] == parasite[0]) {
-			for (uint16_t para_idx = 0; para_idx < PARASITE_LEN - 1; para_idx++) {
-				if (((unsigned char*)(g_woody->ptr + g_woody->datas.bss_shdr->sh_addr - parasite_search_offset))[depth + para_idx] == parasite[para_idx]) {
-					infected++;
-					if (infected > infection_detection_threshold)
-						exit_woody("Error: binary seems already packed", EXIT_FAILURE, 2);
-				}
-				else 
-				{
-					infected = 0;
-					break;
-				}
-			}
-		}
-	}
-	*/
 }
 
 /*		modify the rights of load segments and the addresses of the segments after the parasite		*/
